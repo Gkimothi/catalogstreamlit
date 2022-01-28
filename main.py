@@ -26,7 +26,7 @@ st.set_page_config(
 st.title('Reyansh\'s Year in Books') 
 
 # Begin Get data
-#@st.cache(ttl=600,allow_output_mutation=True) # Uncomment this for Production
+#@st.cache(ttl=600,allow_output_mutation=True) # Not working on Streamlit cloud
 def get_data():
     query = f'SELECT * FROM "{sheet_url}"'
     return pd.read_sql(query, conn)
