@@ -5,6 +5,8 @@ import altair as alt
 import datetime as dt
 from google.oauth2 import service_account
 from gsheetsdb import connect
+from st_aggrid import AgGrid
+from st_aggrid.grid_options_builder import GridOptionsBuilder
 
 # Create a connection object.
 credentials = service_account.Credentials.from_service_account_info(
@@ -112,39 +114,9 @@ with col1:
 # Begin Display all books in a dataframe with selected columns
 st.subheader("All the books!")
 
-col1, col2 = st.columns(2)
+gb = GridOptionsBuilder.from_dataframe(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth']])
+gb.configure_pagination()
+gridOptions = gb.build()
 
-with col1: search_parameter = st.selectbox('Search By', ['Author', 'Read Month', 'Rating', 'Category'])
-
-if search_parameter == 'Author':
-     with col2: choice = st.selectbox('', np.sort(np.append(df['Authors'].unique(), '')))
-elif search_parameter == 'Read Month':
-    with col2: choice = st.selectbox('', np.sort(np.append(df['ReadYearMonth'].unique(), '')))
-elif search_parameter == 'Rating':
-    with col2: choice = st.selectbox('', np.sort(np.append(df['Rating'].unique(), 0.0)))
-elif search_parameter == 'Category':
-    with col2: choice = st.selectbox('Category', np.sort(np.append(df['Category'].unique(), '')))
-
-@st.experimental_memo()
-def search(search_parameter, choice):
-    if (search_parameter == 'Author' and choice == ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']]
-    elif (search_parameter == 'Author' and choice != ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']][df['Authors'] == choice]
-    elif (search_parameter == 'Read Month' and choice == ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']]
-    elif (search_parameter == 'Read Month' and choice != ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']][df['ReadYearMonth'] == choice]
-    elif (search_parameter == 'Rating' and choice == ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']]
-    elif (search_parameter == 'Rating' and choice != ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']][df['Rating'] == choice]
-    elif (search_parameter == 'Category' and choice == ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']]
-    elif (search_parameter == 'Category' and choice != ''):
-        show_df = df[['BookName','Authors', 'StartDate', 'FinishDate', 'Rating', 'Category']][df['Category'] == choice]
-    return show_df
-
-display_dataframe = search(search_parameter, choice)
-st.dataframe(display_dataframe)
+AgGrid(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth']], gridOptions=gridOptions)
 # End Display all books in a dataframe with selected columns
