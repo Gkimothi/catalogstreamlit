@@ -7,6 +7,7 @@ from google.oauth2 import service_account
 from gsheetsdb import connect
 from st_aggrid import AgGrid
 from st_aggrid.grid_options_builder import GridOptionsBuilder
+from st_aggrid.shared import GridUpdateMode
 
 # Create a connection object.
 credentials = service_account.Credentials.from_service_account_info(
@@ -113,10 +114,22 @@ with col1:
 
 # Begin Display all books in a dataframe with selected columns
 st.subheader("All the books!")
-
-gb = GridOptionsBuilder.from_dataframe(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth']])
+st.write('*Select a row to see it\'s image*')
+col1, col2 = st.columns([8, 1])
+gb = GridOptionsBuilder.from_dataframe(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth', 'Thumbnail']])
+gb.configure_column('Thumbnail', hide=True) 
 gb.configure_pagination()
+gb.configure_side_bar(columns_panel = False)
+gb.configure_selection(selection_mode="single", use_checkbox=True)
+# gb.configure_default_column(groupable=True, value=True, enableRowGroup=True, aggFunc="count", editable=True)
 gridOptions = gb.build()
 
-AgGrid(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth']], gridOptions=gridOptions)
+with col1:data = AgGrid(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth', 'Thumbnail']].sort_values(by='ReadYearMonth', ascending=False),
+ gridOptions=gridOptions, enable_enterprise_modules=True, fit_columns_on_grid_load=True, theme='streamlit', update_mode=GridUpdateMode.SELECTION_CHANGED)
+
+# Display book thumbnail
+with col2:
+    if data['selected_rows']:
+        if data['selected_rows'][0]['Thumbnail']!= 'None':
+            st.image(data['selected_rows'][0]['Thumbnail'])
 # End Display all books in a dataframe with selected columns
