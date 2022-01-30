@@ -114,7 +114,7 @@ with col1:
 
 # Begin Display all books in a dataframe with selected columns
 st.subheader("All the books!")
-st.write('*Select a row to see it\'s image*')
+st.caption('Select a row to see it\'s image')
 col1, col2 = st.columns([8, 1])
 gb = GridOptionsBuilder.from_dataframe(df[['BookName', 'Authors', 'Rating', 'Category', 'ReadYearMonth', 'Thumbnail']])
 gb.configure_column('Thumbnail', hide=True) 
