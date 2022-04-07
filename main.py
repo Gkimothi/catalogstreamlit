@@ -1,3 +1,4 @@
+from operator import index
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -39,7 +40,6 @@ df = get_data()
 # Begin dataframe manipulation for book read year month
 df['ReadDate'] = pd.to_datetime(df['FinishDate'])
 df['ReadYearMonth'] = df['ReadDate'].dt.strftime('%Y-%m')
-
 df_yearmonth = df.groupby(['ReadYearMonth']).count()['BookName'].reset_index()
 df_yearmonth.columns = ['ReadYearMonth', 'Count of Books']
 # End dataframe manipulation
@@ -48,6 +48,11 @@ df_yearmonth.columns = ['ReadYearMonth', 'Count of Books']
 df_categories_percentage = df.groupby(['Category']).count()['BookName'].reset_index()
 df_categories_percentage.columns = ['Category', 'Count of Books']
 df_categories_percentage['Category Percentage'] = (df_categories_percentage['Count of Books']/(df_categories_percentage['Count of Books'].sum())*100).round(decimals=2)
+# End dataframe manipulation
+
+# Begin dataframe manipulation for books by category cumulative total over READYEARMONTH
+df_crosstab_category = pd.crosstab(index=df['ReadYearMonth'], columns=df['Category'], rownames=['ReadYearMonth']).cumsum()
+df_crosstab_cumcount_category = df_crosstab_category.stack().reset_index().rename(columns={0:'CummulativeCount'})
 # End dataframe manipulation
 
 col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
@@ -63,6 +68,17 @@ fig_category_percent = alt.Chart(df_categories_percentage).mark_arc().encode(the
 
 with col4:
     st.altair_chart(fig_category_percent, use_container_width=True)
+
+# Begin Display cumulative number of books read by category over time
+fig_category_line = alt.Chart(df_crosstab_cumcount_category).mark_line(point=alt.OverlayMarkDef()).encode(alt.X('ReadYearMonth', axis=alt.Axis(title='Month-Year Read')),
+                                                                                alt.Y('CummulativeCount:Q', axis=alt.Axis(title='Cumulative Count'),),
+                                                                                tooltip=[alt.Tooltip('Category', title='Category'),
+                                                                                alt.Tooltip('ReadYearMonth', title='Month'), alt.Tooltip('CummulativeCount:Q',
+                                                                                title='Cumulative No. of Books'),],
+                                                                                 color='Category').properties(height=500).interactive()
+st.subheader("Cumulative Count by Category over Months")
+st.altair_chart(fig_category_line, use_container_width=True)
+# End Display cumulative number of books read by category over time
 
 # Begin Display number of books read by category
 click = alt.selection_single(fields=['Category'])
